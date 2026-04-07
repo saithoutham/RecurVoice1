@@ -21,14 +21,14 @@ type ResultPayload = {
 };
 
 type CoughResult = {
-  assessment: string;
-  findings: string;
-  trend: string;
-  confidence: number;
-  cough_count: number;
-  alert_triggered: boolean;
-  alert_reason: string;
-  respiratory_similarity: Record<string, number>;
+  assessment?: string;
+  findings?: string;
+  trend?: string;
+  confidence?: number;
+  cough_count?: number;
+  alert_triggered?: boolean;
+  alert_reason?: string;
+  respiratory_similarity?: Record<string, number>;
 };
 
 const assessmentColors: Record<string, string> = {
@@ -129,23 +129,25 @@ export default function CheckinResultPage() {
 
       {/* Cough assessment */}
       {coughResult ? (
-        <div className={`rounded-2xl border p-5 ${assessmentColors[coughResult.assessment] ?? "border-[#E5E7EB] bg-[#F9FAFB] text-[#0A0A0A]"}`}>
+        <div className={`rounded-2xl border p-5 ${assessmentColors[coughResult.assessment ?? ""] ?? "border-[#E5E7EB] bg-[#F9FAFB] text-[#0A0A0A]"}`}>
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-bold uppercase tracking-[0.2em]">Cough analysis</p>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold">{coughResult.assessment}</span>
-              <span className="text-base">{trendIcons[coughResult.trend] ?? "·"}</span>
+              <span className="text-sm font-bold">{coughResult.assessment ?? "UNAVAILABLE"}</span>
+              <span className="text-base">{trendIcons[coughResult.trend ?? ""] ?? "·"}</span>
             </div>
           </div>
-          <p className="mt-2 text-sm leading-6">{coughResult.findings}</p>
+          <p className="mt-2 text-sm leading-6">
+            {coughResult.findings ?? "Cough analysis was not available for this check-in."}
+          </p>
           <div className="mt-3 flex flex-wrap gap-4 text-xs">
-            <span><strong>{coughResult.cough_count}</strong> coughs detected</span>
-            <span>Confidence <strong>{Math.round(coughResult.confidence * 100)}%</strong></span>
-            <span>Trend: <strong>{coughResult.trend.replace("_", " ")}</strong></span>
+            <span><strong>{coughResult.cough_count ?? 0}</strong> coughs detected</span>
+            <span>Confidence <strong>{Math.round((coughResult.confidence ?? 0) * 100)}%</strong></span>
+            <span>Trend: <strong>{(coughResult.trend ?? "UNAVAILABLE").replace("_", " ")}</strong></span>
           </div>
           {coughResult.alert_triggered && (
             <p className="mt-3 rounded-lg border border-current/20 bg-white/60 px-3 py-2 text-xs font-semibold">
-              ⚠ {coughResult.alert_reason}
+              ⚠ {coughResult.alert_reason ?? "Further review recommended."}
             </p>
           )}
         </div>

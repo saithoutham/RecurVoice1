@@ -16,13 +16,18 @@ export async function POST(request: Request) {
     // When Python API is not configured (e.g. Vercel demo), return a mock result
     if (!apiKey) {
       return NextResponse.json({
-        patient_id: "00000000-0000-0000-0000-000000000001",
-        monitoring_day: Number(incoming.get("monitoring_day") ?? 1),
-        cough_detected: true,
+        assessment: "NORMAL",
+        findings: "Your cough recording did not show a concerning pattern today.",
+        trend: "STABLE",
+        confidence: 0.82,
         cough_count: 3,
-        cough_severity: "mild",
-        features: { energy: 0.12, duration_s: 0.45 },
-        analysis_note: "Demo mode: cough analysis not available without the Python API service."
+        alert_triggered: false,
+        alert_reason: "",
+        respiratory_similarity: {
+          normal: 0.82,
+          irritation: 0.12,
+          lower_respiratory: 0.06
+        }
       });
     }
 
