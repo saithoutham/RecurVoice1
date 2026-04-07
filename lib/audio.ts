@@ -49,12 +49,21 @@ export async function normalizeRecordedBlob(blob: Blob) {
   if (blob.type.includes("wav")) {
     return blob;
   }
-  const context = createAudioContext();
+  if (typeof window === "undefined") {
+    return blob;
+  }
+
+  let context: AudioContext | null = null;
   try {
+    context = createAudioContext();
     const buffer = await decodeBlobToAudioBuffer(blob, context);
     return audioBufferToWavBlob(buffer);
+  } catch {
+    return blob;
   } finally {
-    await context.close();
+    if (context && context.state !== "closed") {
+      await context.close().catch(() => undefined);
+    }
   }
 }
 

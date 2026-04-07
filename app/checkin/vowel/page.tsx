@@ -127,16 +127,25 @@ export default function CheckinVowelPage() {
 
   async function stopCapture() {
     if (!recorderRef.current) return;
-    await new Promise<void>((resolve) => {
-      recorderRef.current!.onstop = () => resolve();
-      recorderRef.current!.stop();
-    });
-    const blob = new Blob(chunksRef.current, { type: recorderRef.current.mimeType || supportedMimeType() || "audio/webm" });
-    const normalized = await normalizeRecordedBlob(blob);
-    await storeCheckinBlob(CHECKIN_KEYS.vowelBlob, normalized);
-    cleanup();
-    setStage("complete");
-    window.setTimeout(() => router.push("/checkin/reading"), 800);
+    const recorder = recorderRef.current;
+    try {
+      await new Promise<void>((resolve) => {
+        recorder.onstop = () => resolve();
+        recorder.stop();
+      });
+      const blob = new Blob(chunksRef.current, {
+        type: recorder.mimeType || supportedMimeType() || "audio/webm"
+      });
+      const normalized = await normalizeRecordedBlob(blob);
+      await storeCheckinBlob(CHECKIN_KEYS.vowelBlob, normalized);
+      cleanup();
+      setStage("complete");
+      window.setTimeout(() => router.push("/checkin/reading"), 800);
+    } catch {
+      cleanup();
+      setStage("error");
+      setError("We could not save that recording. Please try again.");
+    }
   }
 
   return (

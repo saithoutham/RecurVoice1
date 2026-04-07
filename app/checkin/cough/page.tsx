@@ -68,18 +68,24 @@ export default function CheckinCoughPage() {
 
   async function stopRecording() {
     if (!recorderRef.current || stage === "complete") return;
-    cleanup();
-    await new Promise<void>((resolve) => {
-      recorderRef.current!.onstop = () => resolve();
-      if (recorderRef.current!.state !== "inactive") recorderRef.current!.stop();
-      else resolve();
-    });
-    const blob = new Blob(chunksRef.current, {
-      type: recorderRef.current.mimeType || supportedMimeType() || "audio/webm"
-    });
-    const normalized = await normalizeRecordedBlob(blob);
-    await storeCheckinBlob(CHECKIN_KEYS.coughBlob, normalized);
-    setStage("complete");
+    const recorder = recorderRef.current;
+    try {
+      cleanup();
+      await new Promise<void>((resolve) => {
+        recorder.onstop = () => resolve();
+        if (recorder.state !== "inactive") recorder.stop();
+        else resolve();
+      });
+      const blob = new Blob(chunksRef.current, {
+        type: recorder.mimeType || supportedMimeType() || "audio/webm"
+      });
+      const normalized = await normalizeRecordedBlob(blob);
+      await storeCheckinBlob(CHECKIN_KEYS.coughBlob, normalized);
+      setStage("complete");
+    } catch {
+      setStage("error");
+      setError("We could not save that recording. Please try again.");
+    }
   }
 
   const MAX_SEC = 30;

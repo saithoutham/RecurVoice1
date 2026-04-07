@@ -131,18 +131,25 @@ export default function ReadingPage() {
   async function stopRecording() {
     if (!recorderRef.current) return;
     const recorder = recorderRef.current;
-    await new Promise<void>((resolve) => {
-      recorder.onstop = () => resolve();
-      recorder.stop();
-    });
-    const blob = new Blob(chunksRef.current, {
-      type: recorder.mimeType || supportedMimeType() || "audio/webm"
-    });
-    const normalized = await normalizeRecordedBlob(blob);
-    await storeBlob(SESSION_KEYS.readingBlob, normalized);
-    cleanup();
-    setRecording(false);
-    setCompleted(true);
+    try {
+      await new Promise<void>((resolve) => {
+        recorder.onstop = () => resolve();
+        recorder.stop();
+      });
+      const blob = new Blob(chunksRef.current, {
+        type: recorder.mimeType || supportedMimeType() || "audio/webm"
+      });
+      const normalized = await normalizeRecordedBlob(blob);
+      await storeBlob(SESSION_KEYS.readingBlob, normalized);
+      cleanup();
+      setRecording(false);
+      setCompleted(true);
+    } catch {
+      cleanup();
+      setRecording(false);
+      setCompleted(false);
+      setError("We could not save that recording. Please try again.");
+    }
   }
 
   return (

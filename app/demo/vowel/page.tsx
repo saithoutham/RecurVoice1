@@ -167,21 +167,26 @@ export default function VowelPage() {
   async function stopCapture() {
     if (!recorderRef.current) return;
     const recorder = recorderRef.current;
+    try {
+      await new Promise<void>((resolve) => {
+        recorder.onstop = () => resolve();
+        recorder.stop();
+      });
 
-    await new Promise<void>((resolve) => {
-      recorder.onstop = () => resolve();
-      recorder.stop();
-    });
-
-    const blob = new Blob(chunksRef.current, {
-      type: recorder.mimeType || supportedMimeType() || "audio/webm"
-    });
-    const normalized = await normalizeRecordedBlob(blob);
-    await storeBlob(SESSION_KEYS.vowelBlob, normalized);
-    cleanup();
-    updateStage("complete");
-    setProgress(1);
-    window.setTimeout(() => router.push("/demo/reading"), 1000);
+      const blob = new Blob(chunksRef.current, {
+        type: recorder.mimeType || supportedMimeType() || "audio/webm"
+      });
+      const normalized = await normalizeRecordedBlob(blob);
+      await storeBlob(SESSION_KEYS.vowelBlob, normalized);
+      cleanup();
+      updateStage("complete");
+      setProgress(1);
+      window.setTimeout(() => router.push("/demo/reading"), 1000);
+    } catch {
+      cleanup();
+      updateStage("error");
+      setError("We could not save that recording. Please try again.");
+    }
   }
 
   return (

@@ -106,16 +106,26 @@ export default function CheckinReadingPage() {
 
   async function stopRecording() {
     if (!recorderRef.current) return;
-    await new Promise<void>((resolve) => {
-      recorderRef.current!.onstop = () => resolve();
-      recorderRef.current!.stop();
-    });
-    const blob = new Blob(chunksRef.current, { type: recorderRef.current.mimeType || supportedMimeType() || "audio/webm" });
-    const normalized = await normalizeRecordedBlob(blob);
-    await storeCheckinBlob(CHECKIN_KEYS.readingBlob, normalized);
-    cleanup();
-    setRecording(false);
-    setCompleted(true);
+    const recorder = recorderRef.current;
+    try {
+      await new Promise<void>((resolve) => {
+        recorder.onstop = () => resolve();
+        recorder.stop();
+      });
+      const blob = new Blob(chunksRef.current, {
+        type: recorder.mimeType || supportedMimeType() || "audio/webm"
+      });
+      const normalized = await normalizeRecordedBlob(blob);
+      await storeCheckinBlob(CHECKIN_KEYS.readingBlob, normalized);
+      cleanup();
+      setRecording(false);
+      setCompleted(true);
+    } catch {
+      cleanup();
+      setRecording(false);
+      setCompleted(false);
+      setError("We could not save that recording. Please try again.");
+    }
   }
 
   return (
