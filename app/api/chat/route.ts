@@ -16,11 +16,22 @@ You never diagnose any medical condition. You never tell a user they have cancer
 
 Keep answers concise. Plain English. 5th grade reading level. Never use jargon without immediately explaining it.
 
-Do not use markdown bullets, numbered lists, headings, asterisks, or hyphen lists unless the user explicitly asks for a list. Write short direct paragraphs.`;
+Do not use markdown bullets, numbered lists, headings, asterisks, or hyphen lists unless the user explicitly asks for a list. Write short direct paragraphs.
+
+Never reveal chain-of-thought, hidden reasoning, scratch work, planning notes, XML thought tags, or internal analysis. Output only the final user-facing answer.`;
 
 type ChatRequest = {
   messages?: Array<{ role: string; content: string }>;
 };
+
+function stripReasoning(content: string) {
+  return content
+    .replace(/<thought>[\s\S]*?<\/thought>/gi, "")
+    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, "")
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/<\/?(thought|thinking|think)>/gi, "")
+    .trim();
+}
 
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => ({}))) as ChatRequest;
@@ -55,7 +66,7 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({
           model,
-          messages: [{ role: "user", content: systemPrompt }, ...messages],
+          messages: [{ role: "system", content: systemPrompt }, ...messages],
           max_tokens: 300
         }),
         cache: "no-store"
@@ -71,9 +82,10 @@ export async function POST(request: Request) {
       choices?: Array<{ message?: { content?: string } }>;
     };
 
-    const content =
+    const rawContent =
       completion.choices?.[0]?.message?.content ??
       "I could not answer that right now. Please try again.";
+    const content = stripReasoning(rawContent) || "I could not answer that right now. Please try again.";
 
     return NextResponse.json({ content });
   } catch (err) {
