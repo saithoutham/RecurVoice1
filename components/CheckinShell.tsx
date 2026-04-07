@@ -26,7 +26,7 @@ const stepLabels = [
 ];
 
 export function CheckinShell({ children }: PropsWithChildren) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   // Use exact matching to prevent /checkin matching all sub-routes
   const index = Math.max(0, steps.findIndex((step) => pathname === step));
   const progress = ((index + 1) / steps.length) * 100;

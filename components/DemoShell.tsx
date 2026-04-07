@@ -14,7 +14,7 @@ const steps = [
 ];
 
 export function DemoShell({ children }: PropsWithChildren) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const index = Math.max(0, steps.findIndex((step) => pathname.startsWith(step)));
   const progress = ((index + 1) / steps.length) * 100;
 

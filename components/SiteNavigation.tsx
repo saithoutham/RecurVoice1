@@ -31,7 +31,7 @@ export function SiteNavigation({
   onboardingComplete,
   unacknowledgedAlertCount
 }: Props) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
 
   const compact = pathname.startsWith("/checkin") || pathname.startsWith("/demo");
